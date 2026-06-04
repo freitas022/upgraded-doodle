@@ -29,13 +29,10 @@ public class Inventory {
 
 
     public void increase(Integer qty) {
-        validateQty(qty);
         this.quantityAvailable += qty;
     }
 
     public void decrease(Integer qty) {
-        validateQty(qty);
-
         if (this.quantityAvailable < qty) {
             throw new BusinessException("Not enough stock available.");
         }
@@ -47,9 +44,7 @@ public class Inventory {
         return this.quantityAvailable <= this.reorderLevel;
     }
 
-    private void validateQty(Integer qty) {
-        if (qty == null || qty <= 0) {
-            throw new BusinessException("Quantity must be greater than zero.");
-        }
+    public boolean hasStock(Integer quantity) {
+        return quantityAvailable >= quantity;
     }
 }
