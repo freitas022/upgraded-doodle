@@ -23,6 +23,11 @@ public class Inventory {
     @Column(nullable = false)
     private Integer reorderLevel = 0;
 
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "product_id")
+    private Product product;
+
+
     public void increase(Integer qty) {
         validateQty(qty);
         this.quantityAvailable += qty;
