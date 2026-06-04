@@ -1,6 +1,9 @@
 package br.com.freitas.upgradeddoodle.domain.service;
 
+import br.com.freitas.upgradeddoodle.domain.event.OrderCancelledEvent;
+import br.com.freitas.upgradeddoodle.domain.event.OrderConfirmedEvent;
 import br.com.freitas.upgradeddoodle.domain.model.Customer;
+import br.com.freitas.upgradeddoodle.domain.model.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -45,5 +48,15 @@ public class EmailService {
 
         mailSender.send(message);*/
         log.info("Enviando e-mail de redefinição de senha para o cliente {}", customer.getEmail());
+    }
+
+    @Async
+    public void sendOrderConfirmationEmail(OrderConfirmedEvent event) {
+        log.info("Enviando e-mail de confirmação do pedido {} para {}", event.orderId(), event.customerEmail());
+    }
+
+    @Async
+    public void sendOrderCancelledEmail(OrderCancelledEvent event) {
+        log.info("Enviando e-mail de cancelamento do pedido {} para {}", event.orderId(), event.customerEmail());
     }
 }
