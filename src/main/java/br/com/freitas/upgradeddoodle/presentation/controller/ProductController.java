@@ -3,6 +3,7 @@ package br.com.freitas.upgradeddoodle.presentation.controller;
 import br.com.freitas.upgradeddoodle.domain.service.ProductService;
 import br.com.freitas.upgradeddoodle.presentation.dto.PagedResponse;
 import br.com.freitas.upgradeddoodle.presentation.dto.ProductDTO;
+import br.com.freitas.upgradeddoodle.presentation.dto.ProductMinDTO;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +27,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<PagedResponse<ProductDTO>> findAll(
+    public ResponseEntity<PagedResponse<ProductMinDTO>> findAll(
             @PageableDefault(size = 20, sort = "name")
             Pageable pageable
     ) {
