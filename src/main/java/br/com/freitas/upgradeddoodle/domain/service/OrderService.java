@@ -80,11 +80,10 @@ public class OrderService {
     @Transactional
     public OrderDetailResponse confirm(Long orderId) {
         var order = findById(orderId);
-
         order.confirm();
 
         for (OrderItem item : order.getItems()) {
-            Inventory inventory = inventoryRepository.findByProductId(item.getProduct().getId())
+            var inventory = inventoryRepository.findByProductId(item.getProduct().getId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Inventory not found for product id: " + item.getProduct().getId()
                     ));
@@ -94,20 +93,15 @@ public class OrderService {
                         "Insufficient stock for product id: " + item.getProduct().getId()
                 );
             }
-        }
-
-        for (OrderItem item : order.getItems()) {
-            Inventory inventory = inventoryRepository.findByProductId(item.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Inventory not found for product id: " + item.getProduct().getId()
-                    ));
 
             inventory.decrease(item.getQuantity());
         }
 
-        eventPublisher.publishEvent(new OrderConfirmedEvent(order.getId(), order.getCustomer().getEmail()));
+        eventPublisher.publishEvent(new OrderConfirmedEvent(
+                order.getId(), order.getCustomer().getEmail()
+        ));
 
-        return OrderDetailResponse.fromEntity(order);
+        return OrderDetailResponse.fromEntity(orderRepository.save(order));
     }
 
     @Transactional
