@@ -38,6 +38,9 @@ public class Order {
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
     @CreationTimestamp
     private Instant createdAt;
 
@@ -68,6 +71,14 @@ public class Order {
         return this.status == OrderStatus.CANCELLED;
     }
 
+    public void markAsPaid() {
+        if (!isConfirmed()) {
+            throw new BusinessException("Only confirmed orders can be marked as paid.");
+        }
+
+        this.status = OrderStatus.PAID;
+    }
+
     public void confirm() {
         if (this.items.isEmpty()) {
             throw new BusinessException("Order must have at least one item.");
@@ -90,6 +101,10 @@ public class Order {
         }
 
         this.status = OrderStatus.CANCELLED;
+    }
+
+    public void assignPayment(Payment payment) {
+        this.payment = payment;
     }
 
     public BigDecimal getTotal() {

@@ -36,6 +36,13 @@ public class OrderService {
     }
 
     @Transactional
+    public void markAsPaid(Long orderId) {
+        var order = findById(orderId);
+        order.markAsPaid();
+        orderRepository.save(order);
+    }
+
+    @Transactional
     public OrderDetailResponse findOrderDetailsById(Long id) {
         Order order = orderRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
