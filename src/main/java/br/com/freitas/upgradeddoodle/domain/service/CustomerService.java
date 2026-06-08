@@ -2,17 +2,13 @@ package br.com.freitas.upgradeddoodle.domain.service;
 
 import br.com.freitas.upgradeddoodle.domain.event.CustomerRegisteredEvent;
 import br.com.freitas.upgradeddoodle.domain.model.Customer;
-import br.com.freitas.upgradeddoodle.domain.model.enums.AccountStatus;
 import br.com.freitas.upgradeddoodle.domain.repository.CustomerRepository;
 import br.com.freitas.upgradeddoodle.presentation.dto.CustomerRequest;
-import br.com.freitas.upgradeddoodle.presentation.exceptions.BusinessException;
 import br.com.freitas.upgradeddoodle.presentation.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +34,10 @@ public class CustomerService {
         customer.getAccount().activate(token);
 
         customerRepository.save(customer);
+    }
+
+    public Customer findById(Long id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + id));
     }
 }

@@ -2,18 +2,13 @@ package br.com.freitas.upgradeddoodle.domain.service;
 
 import br.com.freitas.upgradeddoodle.domain.event.OrderCancelledEvent;
 import br.com.freitas.upgradeddoodle.domain.event.OrderConfirmedEvent;
-import br.com.freitas.upgradeddoodle.domain.model.Inventory;
 import br.com.freitas.upgradeddoodle.domain.model.Order;
 import br.com.freitas.upgradeddoodle.domain.model.OrderItem;
-import br.com.freitas.upgradeddoodle.domain.model.enums.OrderStatus;
-import br.com.freitas.upgradeddoodle.domain.repository.CustomerRepository;
-import br.com.freitas.upgradeddoodle.domain.repository.InventoryRepository;
 import br.com.freitas.upgradeddoodle.domain.repository.OrderRepository;
-import br.com.freitas.upgradeddoodle.domain.repository.ProductRepository;
+import br.com.freitas.upgradeddoodle.presentation.dto.CreateOrderItemRequest;
 import br.com.freitas.upgradeddoodle.presentation.dto.CreateOrderRequest;
 import br.com.freitas.upgradeddoodle.presentation.dto.OrderCreatedResponse;
 import br.com.freitas.upgradeddoodle.presentation.dto.OrderDetailResponse;
-import br.com.freitas.upgradeddoodle.presentation.exceptions.BusinessException;
 import br.com.freitas.upgradeddoodle.presentation.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,9 +20,9 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final CustomerRepository customerRepository;
-    private final ProductRepository productRepository;
-    private final InventoryRepository inventoryRepository;
+    private final CustomerService customerService;
+    private final ProductService productService;
+    private final InventoryService inventoryService;
     private final ApplicationEventPublisher eventPublisher;
 
     public Order findById(Long id) {
@@ -42,7 +37,6 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    @Transactional
     public OrderDetailResponse findOrderDetailsById(Long id) {
         Order order = orderRepository.findDetailedById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -54,32 +48,27 @@ public class OrderService {
 
     @Transactional
     public OrderCreatedResponse create(CreateOrderRequest request) {
-
-        var customer = customerRepository.getReferenceById(request.customerId());
+        var customer = customerService.findById(request.customerId());
 
         var order = Order.create(customer);
 
-        var items = request.items().stream()
-                .map(item -> {
-                            var product = productRepository.findById(item.productId())
-                                    .orElseThrow(() -> new ResourceNotFoundException(
-                                            "Product not found with id: " + item.productId()
-                                    ));
-
-                            if (!product.isAvailable()) {
-                                throw new BusinessException("Product with id " + product.getId() + " is not available.");
-                            }
-
-                            return OrderItem.create(
-                                    product,
-                                    item.quantity(),
-                                    product.getPrice()
-                            );
-                        }
-                )
+        var productIds = request.items().stream()
+                .map(CreateOrderItemRequest::productId)
+                .distinct()
                 .toList();
 
-        items.forEach(order::addItem);
+        var productsById = productService.findAvailableProductsByIds(productIds);
+
+        request.items().forEach(itemRequest -> {
+            var product = productsById.get(itemRequest.productId());
+
+            order.addItem(OrderItem.create(
+                    product,
+                    itemRequest.quantity(),
+                    product.getPrice()
+            ));
+        });
+
         return OrderCreatedResponse.fromEntity(orderRepository.save(order));
     }
 
@@ -89,20 +78,7 @@ public class OrderService {
         var order = findById(orderId);
         order.confirm();
 
-        for (OrderItem item : order.getItems()) {
-            var inventory = inventoryRepository.findByProductId(item.getProduct().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Inventory not found for product id: " + item.getProduct().getId()
-                    ));
-
-            if (!inventory.hasStock(item.getQuantity())) {
-                throw new BusinessException(
-                        "Insufficient stock for product id: " + item.getProduct().getId()
-                );
-            }
-
-            inventory.decrease(item.getQuantity());
-        }
+        decreaseItemsFromStock(order);
 
         eventPublisher.publishEvent(new OrderConfirmedEvent(
                 order.getId(), order.getCustomer().getEmail()
@@ -115,21 +91,29 @@ public class OrderService {
     public OrderDetailResponse cancel(Long orderId) {
         var order = findById(orderId);
 
-        boolean shouldReturnStock = order.getStatus() == OrderStatus.CONFIRMED;
+        boolean shouldReturnStock = order.isConfirmed();
 
         order.cancel();
 
         if (shouldReturnStock) {
-            for (OrderItem item : order.getItems()) {
-                Inventory inventory = inventoryRepository.findByProductId(item.getProduct().getId())
-                        .orElseThrow(() -> new ResourceNotFoundException(
-                                "Inventory not found for product id: " + item.getProduct().getId()
-                        ));
-
-                inventory.increase(item.getQuantity());
-            }
+            returnItemsToStock(order);
         }
+
+        orderRepository.save(order);
+
         eventPublisher.publishEvent(new OrderCancelledEvent(order.getId(), order.getCustomer().getEmail()));
         return OrderDetailResponse.fromEntity(order);
+    }
+
+    private void decreaseItemsFromStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            inventoryService.decreaseStock(item.getProduct().getId(), item.getQuantity());
+        }
+    }
+
+    private void returnItemsToStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+           inventoryService.increaseStock(item.getProduct().getId(), item.getQuantity());
+        }
     }
 }
