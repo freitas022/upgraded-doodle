@@ -1,4 +1,4 @@
-package br.com.freitas.upgradeddoodle.presentation.dto;
+package br.com.freitas.upgradeddoodle.infrastructure.payment.dto;
 
 import java.math.BigDecimal;
 

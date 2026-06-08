@@ -1,9 +1,9 @@
 package br.com.freitas.upgradeddoodle.infrastructure.payment.adapter;
 
-import br.com.freitas.upgradeddoodle.presentation.dto.AuthorizationResult;
-import br.com.freitas.upgradeddoodle.presentation.dto.CaptureResult;
-import br.com.freitas.upgradeddoodle.presentation.dto.PaymentCommand;
-import br.com.freitas.upgradeddoodle.presentation.dto.RefundResult;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.AuthorizationResult;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.CaptureResult;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.PaymentCommand;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.RefundResult;
 
 import java.math.BigDecimal;
 

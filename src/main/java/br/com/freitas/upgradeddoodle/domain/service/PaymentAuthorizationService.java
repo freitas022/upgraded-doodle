@@ -3,7 +3,7 @@ package br.com.freitas.upgradeddoodle.domain.service;
 import br.com.freitas.upgradeddoodle.domain.model.Payment;
 import br.com.freitas.upgradeddoodle.domain.repository.PaymentRepository;
 import br.com.freitas.upgradeddoodle.infrastructure.payment.adapter.PaymentGateway;
-import br.com.freitas.upgradeddoodle.presentation.dto.PaymentCommand;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.PaymentCommand;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
