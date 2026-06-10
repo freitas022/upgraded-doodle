@@ -46,8 +46,7 @@ public class Payment {
     @UpdateTimestamp
     private Instant updatedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", unique = true)
+    @OneToOne(mappedBy = "payment")
     private Order order;
 
     public static Payment create(Order order, PaymentMethod method) {
