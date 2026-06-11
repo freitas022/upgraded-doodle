@@ -2,11 +2,9 @@ package br.com.freitas.upgradeddoodle.infrastructure.payment.dto;
 
 import java.math.BigDecimal;
 
-public record PaymentCommand(
-
-        String cardToken,
+public record RefundCommand(
+        String transactionId,
         BigDecimal amount,
-        Long orderId,
-        String customerEmail
-) {
-}
+        String currency,
+        String reason
+) {}

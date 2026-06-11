@@ -1,18 +1,16 @@
 package br.com.freitas.upgradeddoodle.infrastructure.payment.adapter;
 
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.AuthorizationResult;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.CaptureResult;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.PaymentCommand;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.RefundResult;
-
-import java.math.BigDecimal;
-
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.*;
+import jakarta.validation.Valid;
 
 public interface PaymentGateway {
 
-    AuthorizationResult authorize(PaymentCommand command);
+    @Valid
+    AuthorizationResult authorize(AuthorizationCommand command);
 
-    CaptureResult capture(String transactionId);
+    @Valid
+    CaptureResult capture(CaptureCommand command);
 
-    RefundResult refund(String transactionId, BigDecimal amount);
+    @Valid
+    RefundResult refund(RefundCommand command);
 }

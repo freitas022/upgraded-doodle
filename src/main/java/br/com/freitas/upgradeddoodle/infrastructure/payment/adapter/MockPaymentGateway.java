@@ -1,60 +1,62 @@
 package br.com.freitas.upgradeddoodle.infrastructure.payment.adapter;
 
 import br.com.freitas.upgradeddoodle.domain.model.enums.PaymentStatus;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.AuthorizationResult;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.CaptureResult;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.PaymentCommand;
-import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.RefundResult;
-import lombok.RequiredArgsConstructor;
+import br.com.freitas.upgradeddoodle.infrastructure.payment.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Slf4j
 @Component
+@Validated
 @ConditionalOnProperty(name = "payment.mock.enabled", havingValue = "true")
-@RequiredArgsConstructor
 public class MockPaymentGateway implements PaymentGateway {
 
     @Override
-    public AuthorizationResult authorize(PaymentCommand command) {
-        log.info("MockPaymentGateway: Autorização simulada para pedido {}", command.orderId());
-
-        var transactionId = "MOCK-" + UUID.randomUUID();
-        var authCode = "AUTH-" + System.currentTimeMillis();
+    public AuthorizationResult authorize(AuthorizationCommand command) {
+        log.info("Mock authorizing paymentId={} amount={} currency={}",
+                command.paymentId(),
+                command.amount(),
+                command.currency());
 
         return new AuthorizationResult(
-                transactionId,
+                "TXN-" + UUID.randomUUID(),
                 PaymentStatus.AUTHORIZED,
-                authCode,
+                "AUTH-" + ThreadLocalRandom.current().nextInt(100000, 999999),
                 Instant.now()
         );
     }
 
     @Override
-    public CaptureResult capture(String transactionId) {
-        log.info("MockPaymentGateway: Captura simulada para transaction {}", transactionId);
+    public CaptureResult capture(CaptureCommand command) {
+        log.info("Mock capturing transactionId={} amount={} currency={}",
+                command.transactionId(),
+                command.amount(),
+                command.currency());
 
         return new CaptureResult(
-                transactionId,
+                command.transactionId(),
                 PaymentStatus.CAPTURED,
                 Instant.now()
         );
     }
 
     @Override
-    public RefundResult refund(String transactionId, BigDecimal amount) {
-        log.info("MockPaymentGateway: Reembolso simulado de {} para transaction {}",
-                amount, transactionId);
+    public RefundResult refund(RefundCommand command) {
+        log.info("Mock refunding transactionId={} amount={} currency={}",
+                command.transactionId(),
+                command.amount(),
+                command.currency());
 
         return new RefundResult(
-                transactionId,
+                command.transactionId(),
                 PaymentStatus.REFUNDED,
-                amount,
+                command.amount(),
                 Instant.now()
         );
     }

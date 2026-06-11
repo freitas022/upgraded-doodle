@@ -11,7 +11,8 @@ public record OrderDetailResponse(
         String status,
         BigDecimal total,
         Instant createdAt,
-        List<OrderItemResponse> items
+        List<OrderItemResponse> items,
+        OrderPaymentResponse payment
 ) {
     public static OrderDetailResponse fromEntity(Order order) {
         return new OrderDetailResponse(
@@ -21,7 +22,8 @@ public record OrderDetailResponse(
                 order.getCreatedAt(),
                 order.getItems().stream()
                         .map(OrderItemResponse::fromEntity)
-                        .toList()
+                        .toList(),
+                OrderPaymentResponse.fromEntity(order.getPayment())
         );
     }
 }

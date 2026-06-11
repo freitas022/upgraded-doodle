@@ -4,7 +4,10 @@ import br.com.freitas.upgradeddoodle.domain.model.enums.PaymentMethod;
 import br.com.freitas.upgradeddoodle.domain.model.enums.PaymentStatus;
 import br.com.freitas.upgradeddoodle.presentation.exceptions.BusinessException;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -14,7 +17,6 @@ import java.time.Instant;
 @Entity
 @Table(name = "tb_payments")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -90,5 +92,11 @@ public class Payment {
         }
 
         this.status = PaymentStatus.REFUNDED;
+    }
+
+    public void complete(String transactionId, Instant moment) {
+        this.status = PaymentStatus.CAPTURED;
+        this.paidAt = moment;
+        this.transactionId = transactionId;
     }
 }

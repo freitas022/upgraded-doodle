@@ -1,40 +1,34 @@
 package br.com.freitas.upgradeddoodle.domain.service;
 
 import br.com.freitas.upgradeddoodle.domain.event.OrderCancelledEvent;
-import br.com.freitas.upgradeddoodle.domain.event.OrderConfirmedEvent;
 import br.com.freitas.upgradeddoodle.domain.model.Order;
 import br.com.freitas.upgradeddoodle.domain.model.OrderItem;
 import br.com.freitas.upgradeddoodle.domain.repository.OrderRepository;
-import br.com.freitas.upgradeddoodle.presentation.dto.CreateOrderItemRequest;
-import br.com.freitas.upgradeddoodle.presentation.dto.CreateOrderRequest;
-import br.com.freitas.upgradeddoodle.presentation.dto.OrderCreatedResponse;
-import br.com.freitas.upgradeddoodle.presentation.dto.OrderDetailResponse;
+import br.com.freitas.upgradeddoodle.presentation.dto.*;
 import br.com.freitas.upgradeddoodle.presentation.exceptions.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Service
 @RequiredArgsConstructor
+@Validated
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CustomerService customerService;
     private final ProductService productService;
     private final InventoryService inventoryService;
+    private final PaymentService paymentService;
     private final ApplicationEventPublisher eventPublisher;
 
     public Order findById(Long id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-    }
-
-    @Transactional
-    public void markAsPaid(Long orderId) {
-        var order = findById(orderId);
-        order.markAsPaid();
-        orderRepository.save(order);
     }
 
     public OrderDetailResponse findOrderDetailsById(Long id) {
@@ -74,17 +68,15 @@ public class OrderService {
 
 
     @Transactional
-    public OrderDetailResponse confirm(Long orderId) {
+    public OrderDetailResponse confirm(@Positive Long orderId, @Valid PaymentRequest paymentRequest) {
         var order = findById(orderId);
         order.confirm();
 
         decreaseItemsFromStock(order);
 
-        eventPublisher.publishEvent(new OrderConfirmedEvent(
-                order.getId(), order.getCustomer().getEmail()
-        ));
+        paymentService.processPaymentForOrder(order,paymentRequest);
 
-        return OrderDetailResponse.fromEntity(orderRepository.save(order));
+        return OrderDetailResponse.fromEntity(order);
     }
 
     @Transactional

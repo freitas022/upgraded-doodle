@@ -1,15 +1,13 @@
 package br.com.freitas.upgradeddoodle.infrastructure.payment.dto;
 
-import br.com.freitas.upgradeddoodle.domain.model.enums.PaymentStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.time.Instant;
+import java.math.BigDecimal;
 
-public record CaptureResult(
-
+public record CaptureCommand(
         @NotBlank String transactionId,
-        @NotNull PaymentStatus status,
-        @NotNull Instant capturedAt
+        @NotNull BigDecimal amount,
+        @NotNull CurrencyCode currency
 ) {
 }

@@ -4,6 +4,7 @@ import br.com.freitas.upgradeddoodle.domain.service.OrderService;
 import br.com.freitas.upgradeddoodle.presentation.dto.CreateOrderRequest;
 import br.com.freitas.upgradeddoodle.presentation.dto.OrderCreatedResponse;
 import br.com.freitas.upgradeddoodle.presentation.dto.OrderDetailResponse;
+import br.com.freitas.upgradeddoodle.presentation.dto.PaymentRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,8 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/confirm")
-    public ResponseEntity<OrderDetailResponse> confirm(@PathVariable Long id) {
-        return ResponseEntity.ok(orderService.confirm(id));
+    public ResponseEntity<OrderDetailResponse> confirm(@PathVariable Long id, @Valid @RequestBody PaymentRequest paymentRequest) {
+        return ResponseEntity.ok(orderService.confirm(id, paymentRequest));
     }
 
     @PostMapping("/{id}/cancel")
