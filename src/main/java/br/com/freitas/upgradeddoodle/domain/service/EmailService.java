@@ -59,4 +59,9 @@ public class EmailService {
     public void sendOrderCancelledEmail(OrderCancelledEvent event) {
         log.info("Enviando e-mail de cancelamento do pedido {} para {}", event.orderId(), event.customerEmail());
     }
+
+    @Async
+    public void sendLowStockAlert(Long productId, Integer qty) {
+        log.info("Estoque baixo: produto {} com {} unidades disponíveis.", productId, qty);
+    }
 }
